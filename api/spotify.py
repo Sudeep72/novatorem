@@ -163,10 +163,8 @@ def makeSVG(data, background_color, border_color):
     return render_template(getTemplate(), **dataDict)
 
 
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
-@app.route('/with_parameters')
-def catch_all(path):
+@app.route("/")
+def catch_all():
     background_color = request.args.get('background_color') or "181414"
     border_color = request.args.get('border_color') or "181414"
 
@@ -182,6 +180,13 @@ def catch_all(path):
 
     return resp
 
+@app.route("/panda")
+def panda():
+    try:
+        data = get(NOW_PLAYING_URL)
+    except Exception:
+        data = {"item": {"name": "Not Playing",} }
+    return data["item"]["name"]
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True, port=os.getenv("PORT") or 5000)
