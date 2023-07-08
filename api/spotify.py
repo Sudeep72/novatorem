@@ -8,6 +8,7 @@ from colorthief import ColorThief
 from base64 import b64encode
 from dotenv import load_dotenv, find_dotenv
 from flask import Flask, Response, render_template, request
+from flask_restful import Api, Resource
 
 load_dotenv(find_dotenv())
 
@@ -110,6 +111,7 @@ def getTemplate():
         print(f"Failed to load templates.\r\n```{e}```")
         return FALLBACK_THEME
 
+
 def loadImageB64(url):
     response = requests.get(url)
     return b64encode(response.content).decode("ascii")
@@ -121,7 +123,7 @@ def makeSVG(data, background_color, border_color):
     barCSS = barGen(barCount)
 
     if not "is_playing" in data:
-        #contentBar = "" #Shows/Hides the EQ bar if no song is currently playing
+        # contentBar = "" #Shows/Hides the EQ bar if no song is currently playing
         currentStatus = "Recently played:"
         recentPlays = get(RECENTLY_PLAYING_URL)
         recentPlaysLength = len(recentPlays["items"])
@@ -163,15 +165,19 @@ def makeSVG(data, background_color, border_color):
     return render_template(getTemplate(), **dataDict)
 
 
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
-@app.route('/with_parameters')
-def catch_all(path):
-    try:
-        data = get(NOW_PLAYING_URL)
-    except Exception:
-        data = {"item": {"name": "Not Playing",} }
-    return data["item"]["name"]
+api = Api(app)
+
+
+class Hello(Resource):
+    def get(self):
+        try:
+            data = get(NOW_PLAYING_URL)
+        except Exception:
+            data = {"item": {"name": "Not Playing", }}
+        return { "res": data["item"]["name"] }, 200
+
+
+api.add_resource(Hello, '/')
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True, port=os.getenv("PORT") or 5000)
