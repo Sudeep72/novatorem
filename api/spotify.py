@@ -163,25 +163,10 @@ def makeSVG(data, background_color, border_color):
     return render_template(getTemplate(), **dataDict)
 
 
-@app.route("/")
-def catch_all():
-    background_color = request.args.get('background_color') or "181414"
-    border_color = request.args.get('border_color') or "181414"
-
-    try:
-        data = get(NOW_PLAYING_URL)
-    except Exception:
-        data = get(RECENTLY_PLAYING_URL)
-
-    svg = makeSVG(data, background_color, border_color)
-
-    resp = Response(svg, mimetype="image/svg+xml")
-    resp.headers["Cache-Control"] = "s-maxage=1"
-
-    return resp
-
-@app.route("/panda")
-def panda():
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+@app.route('/with_parameters')
+def catch_all(path):
     try:
         data = get(NOW_PLAYING_URL)
     except Exception:
